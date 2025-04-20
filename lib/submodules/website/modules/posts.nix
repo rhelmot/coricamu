@@ -78,7 +78,7 @@ let
     # Convert all dates to RFC-822 format as required by RSS.
     checkPhase =
       let python = pkgs.python3.withPackages
-        (ps: with ps; [ beautifulsoup4 dateutil ]);
+        (ps: with ps; [ beautifulsoup4 lxml dateutil ]);
       in "${python}/bin/python ${../rss_dates.py} $target $target";
   };
 
