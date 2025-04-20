@@ -82,6 +82,12 @@ in {
       internal = true;
       type = lines;
     };
+    atomEntry = mkOption {
+
+      description = "Entry in the Atom feed for this post.";
+      internal = true;
+      type = lines;
+    };
 
     page = mkOption {
       description = ''
@@ -184,6 +190,29 @@ in {
             "<description>${escapeXML config.page.meta.description}</description>"
           }
         </item>
+      '';
+
+    atomEntry =
+      let
+        link = "${websiteConfig.baseUrl}${config.page.path}";
+
+      in ''
+        <entry>
+          <title>${escapeXML config.title}</title>
+          <link rel="alternate" type="text/html" href="${link}" />
+          <published>${config.datetime}</published>
+          ${
+            optionalString
+            (config.page.meta ? description)
+            "<summary>${escapeXML config.page.meta.description}</description>"
+          }
+          <content type="html">
+            ${config.body.output}
+          </content>
+          <author>
+            ${concatMapStringsSep "\n" (author: "<name>${escapeXML author}</name>") config.authors}
+          </author>
+        </entry>
       '';
 
     page = {

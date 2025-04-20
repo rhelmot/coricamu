@@ -82,6 +82,26 @@ let
       in "${python}/bin/python ${../rss_dates.py} $target $target";
   };
 
+  makeAtom = { path, title, description, posts }: pkgs.writeTextFile {
+    name = path;
+
+    text = ''
+      <?xml version="1.0" encoding="utf-8"?>
+      <feed xmlns="http://www.w3.org/2005/Atom">
+
+	<title>${escapeXML title}</title>
+	<link href="${config.baseUrl}" />
+	<link href="${config.baseUrl}/${path}" rel="self" />
+        <updated>${
+          # Date of latest post
+          (elemAt allPosts 0).datetime
+        }</updated>
+
+        ${concatMapStringsSep "\n" (post: post.atomEntry) posts}
+      </feed>
+    '';
+  };
+
 in {
   options.posts = mkOption {
     description = "List of all posts.";
@@ -176,6 +196,12 @@ in {
       optionalAttrs (length allPosts > 0) {
         "posts/rss/index.xml" = makeRSS {
           path = "posts/rss/index.xml";
+          title = config.siteTitle;
+          description = "All posts from ${config.siteTitle}.";
+          posts = allPosts;
+        };
+        "posts/atom/index.xml" = makeAtom {
+          path = "posts/atom/index.xml";
           title = config.siteTitle;
           description = "All posts from ${config.siteTitle}.";
           posts = allPosts;
@@ -321,7 +347,7 @@ in {
         '';
 
       posts-navigation =
-        { rss-path ? "index.xml", rss-label ? "the RSS feed" }: ''
+        { rss-path ? "index.xml", rss-label ? "the RSS feed", atom-path ? "index.xml", atom-label ? "the Atom feed" }: ''
           <nav class="post-explore">
             Explore
             <a href="posts/index.html">all posts</a>
@@ -331,6 +357,9 @@ in {
             &middot;
             Subscribe to
             <a href="posts/rss/${rss-path}">${rss-label}</a>
+            &middot;
+            Subscribe to
+            <a href="posts/atom/${atom-path}">${atom-label}</a>
           </nav>
         '';
     };
